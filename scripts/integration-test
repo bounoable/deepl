@@ -1,0 +1,19 @@
+#!/bin/sh
+set -e
+
+if [ -z $1 ]; then
+  echo
+  echo "Missing authKey. Provide one by calling either"
+  echo
+  echo "make integration-test authKey=YOUR_AUTH_KEY"
+  echo
+  echo 'or'
+  echo
+  echo "./scripts/integration-test YOUR_AUTH_KEY"
+  echo
+  exit 1
+fi
+
+export DEEPL_AUTH_KEY=$1
+
+go test
