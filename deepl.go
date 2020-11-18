@@ -100,12 +100,12 @@ func (c *Client) TranslateMany(ctx context.Context, texts []string, targetLang L
 
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("deepl translate: %w", err)
+		return nil, fmt.Errorf("do request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, Error(resp.StatusCode)
+		return nil, Error{Code: resp.StatusCode}
 	}
 
 	var response translateResponse
@@ -155,13 +155,16 @@ func boolString(b bool) string {
 }
 
 // Error is a deepl error.
-type Error int
+type Error struct {
+	// The HTTP error code, returned by the deepl API.
+	Code int
+}
 
 func (err Error) Error() string {
-	switch err {
+	switch err.Code {
 	case 456:
 		return "Quota exceeded. The character limit has been reached."
 	default:
-		return http.StatusText(int(err))
+		return http.StatusText(err.Code)
 	}
 }

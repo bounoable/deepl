@@ -2,6 +2,7 @@ package deepl_test
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -313,14 +314,17 @@ func itHandlesErrors(request *chan *http.Request, mockDeeplHeader *int, resultEr
 		}
 
 		for _, code := range codes {
-			Describe(deepl.Error(code).Error(), func() {
+			code := code
+			Describe(http.StatusText(code), func() {
 				BeforeEach(func() {
 					*mockDeeplHeader = code
 				})
 
-				It("returns the error", func(done Done) {
+				It("returns an error with a code", func(done Done) {
 					<-*request
-					Ω(*resultError).Should(MatchError(deepl.Error(code)))
+					var deeplError deepl.Error
+					Ω(errors.As(*resultError, &deeplError)).Should(BeTrue())
+					Ω(deeplError.Code).Should(Equal(code))
 					close(done)
 				})
 			})
