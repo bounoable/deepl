@@ -3,11 +3,17 @@ package deepl_test
 import (
 	"context"
 	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
 
 	"github.com/bounoable/deepl"
+	mock_http "github.com/bounoable/deepl/http/mocks"
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
+	"github.com/stretchr/testify/assert"
 )
 
 var _ = Describe("Client.Translate", func() {
@@ -320,4 +326,39 @@ func itHandlesErrors(request *chan *http.Request, mockDeeplHeader *int, resultEr
 			})
 		}
 	})
+}
+
+func TestClient_Translate_withCustomHTTPClient(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	httpClient := mock_http.NewMockClient(ctrl)
+
+	client := deepl.New("an-auth-key", deepl.HTTPClient(httpClient))
+
+	clientCalled := make(chan struct{})
+
+	httpClient.EXPECT().
+		Do(gomock.Any()).
+		DoAndReturn(func(*http.Request) (*http.Response, error) {
+			close(clientCalled)
+			return httptest.NewRecorder().Result(), nil
+		})
+
+	client.Translate(context.Background(), "This is an example text.", deepl.German)
+
+	assert.Eventually(t, func() bool {
+		_, open := <-clientCalled
+		return !open
+	}, time.Second, time.Millisecond*100)
+}
+
+func TestClient_HTTPClient(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	httpClient := mock_http.NewMockClient(ctrl)
+
+	client := deepl.New("an-auth-key", deepl.HTTPClient(httpClient))
+	assert.Same(t, httpClient, client.HTTPClient())
 }

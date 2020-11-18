@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	httpi "github.com/bounoable/deepl/http"
 )
 
 const (
@@ -20,6 +22,7 @@ func New(authKey string, opts ...ClientOption) *Client {
 	c := Client{
 		authKey: authKey,
 		baseURL: V2,
+		client:  http.DefaultClient,
 	}
 
 	for _, opt := range opts {
@@ -33,6 +36,7 @@ func New(authKey string, opts ...ClientOption) *Client {
 type Client struct {
 	authKey string
 	baseURL string
+	client  httpi.Client
 }
 
 // A ClientOption configures the deepl client.
@@ -43,6 +47,18 @@ func BaseURL(url string) ClientOption {
 	return func(c *Client) {
 		c.baseURL = url
 	}
+}
+
+// HTTPClient configures the *Client to use the given *http.Client for requests.
+func HTTPClient(client httpi.Client) ClientOption {
+	return func(c *Client) {
+		c.client = client
+	}
+}
+
+// HTTPClient returns the underlying *http.Client.
+func (c *Client) HTTPClient() httpi.Client {
+	return c.client
 }
 
 // Translate translates the given text into the given targetLang.
@@ -57,6 +73,44 @@ func (c *Client) Translate(ctx context.Context, text string, targetLang Language
 	}
 
 	return translations[0].Text, Language(translations[0].DetectedSourceLanguage), nil
+}
+
+// TranslateMany translates multiple texts into the given targetLang.
+func (c *Client) TranslateMany(ctx context.Context, texts []string, targetLang Language, opts ...TranslateOption) ([]Translation, error) {
+	vals := make(url.Values)
+	vals.Set("auth_key", c.authKey)
+	vals.Set("target_lang", string(targetLang))
+
+	for _, text := range texts {
+		vals.Add("text", text)
+	}
+
+	for _, opt := range opts {
+		opt(vals)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", c.translateURL(), strings.NewReader(vals.Encode()))
+	if err != nil {
+		return nil, fmt.Errorf("build request: %w", err)
+	}
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("deepl translate: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, Error(resp.StatusCode)
+	}
+
+	var response translateResponse
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return nil, fmt.Errorf("decode deepl response: %w", err)
+	}
+
+	return response.Translations, nil
 }
 
 // A TranslateOption configures a translation.
@@ -88,38 +142,6 @@ func Formality(formal Formal) TranslateOption {
 	return func(vals url.Values) {
 		vals.Set("formality", formal.Value())
 	}
-}
-
-// TranslateMany translates multiple texts into the given targetLang.
-func (c *Client) TranslateMany(ctx context.Context, texts []string, targetLang Language, opts ...TranslateOption) ([]Translation, error) {
-	vals := make(url.Values)
-	vals.Set("auth_key", c.authKey)
-	vals.Set("target_lang", string(targetLang))
-
-	for _, text := range texts {
-		vals.Add("text", text)
-	}
-
-	for _, opt := range opts {
-		opt(vals)
-	}
-
-	resp, err := http.Post(c.translateURL(), "application/x-www-form-urlencoded", strings.NewReader(vals.Encode()))
-	if err != nil {
-		return nil, fmt.Errorf("deepl translate: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, Error(resp.StatusCode)
-	}
-
-	var response translateResponse
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return nil, fmt.Errorf("decode deepl response: %w", err)
-	}
-
-	return response.Translations, nil
 }
 
 func (c *Client) translateURL() string {
