@@ -29,14 +29,17 @@ func New(authKey string, opts ...ClientOption) *Client {
 		opt(&c)
 	}
 
+	c.translateURL = fmt.Sprintf("%s/translate", c.baseURL)
+
 	return &c
 }
 
 // A Client is a deepl client.
 type Client struct {
-	authKey string
-	baseURL string
-	client  httpi.Client
+	client       httpi.Client
+	authKey      string
+	baseURL      string
+	translateURL string
 }
 
 // A ClientOption configures the deepl client.
@@ -89,7 +92,7 @@ func (c *Client) TranslateMany(ctx context.Context, texts []string, targetLang L
 		opt(vals)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", c.translateURL(), strings.NewReader(vals.Encode()))
+	req, err := http.NewRequestWithContext(ctx, "POST", c.translateURL, strings.NewReader(vals.Encode()))
 	if err != nil {
 		return nil, fmt.Errorf("build request: %w", err)
 	}
@@ -142,10 +145,6 @@ func Formality(formal Formal) TranslateOption {
 	return func(vals url.Values) {
 		vals.Set("formality", formal.Value())
 	}
-}
-
-func (c *Client) translateURL() string {
-	return fmt.Sprintf("%s/translate", c.baseURL)
 }
 
 func boolString(b bool) string {
