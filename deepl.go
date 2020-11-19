@@ -79,6 +79,9 @@ func (c *Client) Translate(ctx context.Context, text string, targetLang Language
 }
 
 // TranslateMany translates multiple texts into the given targetLang.
+//
+// Available options:
+//	SourceLang(), SplitSentences(), PreserveFormatting(), Formality()
 func (c *Client) TranslateMany(ctx context.Context, texts []string, targetLang Language, opts ...TranslateOption) ([]Translation, error) {
 	vals := make(url.Values)
 	vals.Set("auth_key", c.authKey)
@@ -119,28 +122,28 @@ func (c *Client) TranslateMany(ctx context.Context, texts []string, targetLang L
 // A TranslateOption configures a translation.
 type TranslateOption func(url.Values)
 
-// SourceLang sets the source language of the text.
+// SourceLang sets the source language of the text (`source_lang` option).
 func SourceLang(lang Language) TranslateOption {
 	return func(vals url.Values) {
 		vals.Set("source_lang", string(lang))
 	}
 }
 
-// SplitSentences configures the split_sentences option.
+// SplitSentences sets the `split_sentences` option.
 func SplitSentences(split SplitSentence) TranslateOption {
 	return func(vals url.Values) {
 		vals.Set("split_sentences", split.Value())
 	}
 }
 
-// PreserveFormatting configures the preserve_formatting option.
+// PreserveFormatting sets the `preserve_formatting` option.
 func PreserveFormatting(preserve bool) TranslateOption {
 	return func(vals url.Values) {
 		vals.Set("preserve_formatting", boolString(preserve))
 	}
 }
 
-// Formality configures the formality option.
+// Formality sets the `formality` option.
 func Formality(formal Formal) TranslateOption {
 	return func(vals url.Values) {
 		vals.Set("formality", formal.Value())
