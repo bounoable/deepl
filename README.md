@@ -33,3 +33,7 @@ if err != nil {
 log.Println(fmt.Sprintf("source language: %s", sourceLang))
 log.Println(translated)
 ```
+
+## License
+
+[MIT](./LICENSE)
