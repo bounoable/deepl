@@ -64,6 +64,16 @@ func (c *Client) HTTPClient() httpi.Client {
 	return c.client
 }
 
+// BaseURL returns the configures base url for request.
+func (c *Client) BaseURL() string {
+	return c.baseURL
+}
+
+// AuthKey returns the used authentication key.
+func (c *Client) AuthKey() string {
+	return c.authKey
+}
+
 // Translate translates the given text into the given targetLang.
 func (c *Client) Translate(ctx context.Context, text string, targetLang Language, opts ...TranslateOption) (string, Language, error) {
 	translations, err := c.TranslateMany(ctx, []string{text}, targetLang, opts...)

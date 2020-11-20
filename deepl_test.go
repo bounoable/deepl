@@ -366,3 +366,13 @@ func TestClient_HTTPClient(t *testing.T) {
 	client := deepl.New("an-auth-key", deepl.HTTPClient(httpClient))
 	assert.Same(t, httpClient, client.HTTPClient())
 }
+
+func TestClient_BaseURL(t *testing.T) {
+	client := deepl.New("an-auth-key", deepl.BaseURL("base-url"))
+	assert.Equal(t, "base-url", client.BaseURL())
+}
+
+func TestClient_AuthKey(t *testing.T) {
+	client := deepl.New("supersecure123")
+	assert.Equal(t, "supersecure123", client.AuthKey())
+}
