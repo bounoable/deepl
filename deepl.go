@@ -160,6 +160,20 @@ func Formality(formal Formal) TranslateOption {
 	}
 }
 
+// TagHandling sets the `tag_handling` option.
+func TagHandling(handling TagHandlingStrategy) TranslateOption {
+	return func(vals url.Values) {
+		vals.Set("tag_handling", handling.Value())
+	}
+}
+
+// IgnoreTags sets the `ignore_tags` option.
+func IgnoreTags(tags ...string) TranslateOption {
+	return func(vals url.Values) {
+		vals.Set("ignore_tags", strings.Join(tags, ","))
+	}
+}
+
 func boolString(b bool) string {
 	if b {
 		return "1"

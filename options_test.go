@@ -2,6 +2,7 @@ package deepl_test
 
 import (
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/bounoable/deepl"
@@ -56,4 +57,28 @@ func TestFormality(t *testing.T) {
 			assert.Equal(t, f.Value(), vals.Get("formality"))
 		})
 	}
+}
+
+func TestTagHandling(t *testing.T) {
+	strategies := []deepl.TagHandlingStrategy{
+		deepl.DefaultTagHandling,
+		deepl.XMLTagHandling,
+	}
+
+	for _, s := range strategies {
+		t.Run(s.String(), func(t *testing.T) {
+			vals := make(url.Values)
+			deepl.TagHandling(s)(vals)
+			assert.Equal(t, s.Value(), vals.Get("tag_handling"))
+		})
+	}
+}
+
+func TestIgnoreTags(t *testing.T) {
+	tags := []string{"foo", "bar", "baz"}
+
+	vals := make(url.Values)
+	deepl.IgnoreTags(tags...)(vals)
+
+	assert.Equal(t, strings.Join(tags, ","), vals.Get("ignore_tags"))
 }
