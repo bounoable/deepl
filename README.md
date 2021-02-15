@@ -41,7 +41,7 @@ You can test the library against the real DeepL API by running the following com
 **CAUTION: Runnning these tests will add to your usage and therefore will be billed!**
 
 ```sh
-make integration-test authKey=YOUR_AUTH_KEY
+make e2e-test authKey=YOUR_AUTH_KEY
 ```
 
 ## License

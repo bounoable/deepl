@@ -5,11 +5,11 @@ if [ -z $1 ]; then
   echo
   echo "Missing authKey. Provide one by calling either"
   echo
-  echo "make integration-test authKey=YOUR_AUTH_KEY"
+  echo "make e2e-test authKey=YOUR_AUTH_KEY"
   echo
   echo 'or'
   echo
-  echo "./scripts/integration-test YOUR_AUTH_KEY"
+  echo "./scripts/e2e-test YOUR_AUTH_KEY"
   echo
   exit 1
 fi

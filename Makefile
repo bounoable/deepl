@@ -1,7 +1,7 @@
 test:
 	go test -short
 
-integration-test:
-	./scripts/integration-test $(authKey)
+e2e-test:
+	./scripts/e2e-test $(authKey)
 
-.PHONY: test
+.PHONY: test e2e-test
