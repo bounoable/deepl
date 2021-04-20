@@ -2,17 +2,44 @@ package deepl
 
 // Supported languages
 const (
-	Chinese    = Language("ZH")
-	Dutch      = Language("NL")
-	English    = Language("EN")
-	French     = Language("FR")
-	German     = Language("DE")
-	Italian    = Language("IT")
-	Japanese   = Language("JA")
-	Polish     = Language("PL")
+	Bulgarian          = Language("BG")
+	Chinese            = Language("ZH")
+	Czech              = Language("CZ")
+	Danish             = Language("DA")
+	Dutch              = Language("NL")
+	EnglishAmerican    = Language("EN-US")
+	EnglishBritish     = Language("EN-GB")
+	Estonian           = Language("ET")
+	Finnish            = Language("FI")
+	French             = Language("FR")
+	German             = Language("DE")
+	Greek              = Language("EL")
+	Hungarian          = Language("HU")
+	Italian            = Language("IT")
+	Japanese           = Language("JA")
+	Latvian            = Language("LV")
+	Lithuanian         = Language("LT")
+	Polish             = Language("PL")
+	PortugueseBrazil   = Language("PT-BR")
+	PortuguesePortugal = Language("PT-PT")
+	Romanian           = Language("RO")
+	Russian            = Language("RU")
+	Slovak             = Language("SK")
+	Slovenian          = Language("SL")
+	Spanish            = Language("ES")
+	Swedish            = Language("SV")
+)
+
+const (
+	// English (unspecified).
+	//
+	// Deprecated: use EnglishAmerican or EnglishBritish instead.
+	English = Language("EN")
+
+	// Portuguese (unspecified).
+	//
+	// Deprecated: use PortugueseBrazil or PortuguesePortugal instead.
 	Portuguese = Language("PT")
-	Russian    = Language("RU")
-	Spanish    = Language("ES")
 )
 
 // Language is a deepl language code.
