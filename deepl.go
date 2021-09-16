@@ -1,10 +1,12 @@
 package deepl
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -23,6 +25,7 @@ type Client struct {
 	authKey      string
 	baseURL      string
 	translateURL string
+	glossaryURL  string
 }
 
 // A ClientOption configures a Client.
@@ -35,6 +38,8 @@ type TranslateOption func(url.Values)
 type Error struct {
 	// The HTTP error code, returned by the deepl API.
 	Code int
+
+	Body []byte
 }
 
 // BaseURL returns a ClientOption that sets the base url for requests.
@@ -100,6 +105,14 @@ func IgnoreTags(tags ...string) TranslateOption {
 	}
 }
 
+// GlossaryID returns a TranslateOption that sets the `glossary_id` DeepL
+// option.
+func GlossaryID(glossaryID string) TranslateOption {
+	return func(vals url.Values) {
+		vals.Set("glossary_id", glossaryID)
+	}
+}
+
 // New returns a Client that uses authKey as the DeepL authentication key.
 func New(authKey string, opts ...ClientOption) *Client {
 	c := Client{
@@ -113,6 +126,7 @@ func New(authKey string, opts ...ClientOption) *Client {
 	}
 
 	c.translateURL = fmt.Sprintf("%s/translate", c.baseURL)
+	c.glossaryURL = fmt.Sprintf("%s/glossaries", c.baseURL)
 
 	return &c
 }
@@ -212,12 +226,183 @@ func (c *Client) TranslateMany(ctx context.Context, texts []string, targetLang L
 	return response.Translations, nil
 }
 
+func errorFromResp(r *http.Response) error {
+	b, _ := ioutil.ReadAll(r.Body)
+	return Error{
+		Code: r.StatusCode,
+		Body: b,
+	}
+}
+
+// CreateGlossary as per
+// https://www.deepl.com/docs-api/managing-glossaries/creating-a-glossary/
+func (c *Client) CreateGlossary(ctx context.Context, name string, sourceLang, targetLang Language, entries []GlossaryEntry) (*Glossary, error) {
+	vals := make(url.Values)
+	vals.Set("name", name)
+	vals.Set("source_lang", string(sourceLang))
+	vals.Set("target_lang", string(targetLang))
+	vals.Set("entries_format", "tsv")
+	entriesTSV := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		entriesTSV = append(entriesTSV, entry.Source+"\t"+entry.Target)
+	}
+	vals.Set("entries", strings.Join(entriesTSV, "\n"))
+
+	req, err := http.NewRequestWithContext(ctx, "POST", c.glossaryURL, strings.NewReader(vals.Encode()))
+	if err != nil {
+		return nil, fmt.Errorf("build request: %w", err)
+	}
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Authorization", "DeepL-Auth-Key "+c.authKey)
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("do request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		return nil, errorFromResp(resp)
+	}
+
+	var response Glossary
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return nil, fmt.Errorf("decode deepl response: %w", err)
+	}
+
+	return &response, nil
+}
+
+// ListGlossaries as per
+// https://www.deepl.com/docs-api/managing-glossaries/listing-glossaries/
+func (c *Client) ListGlossaries(ctx context.Context) ([]Glossary, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", c.glossaryURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("build request: %w", err)
+	}
+	req.Header.Add("Authorization", "DeepL-Auth-Key "+c.authKey)
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("do request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, errorFromResp(resp)
+	}
+
+	var response struct {
+		Glossaries []Glossary `json:"glossaries"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return nil, fmt.Errorf("decode deepl response: %w", err)
+	}
+
+	return response.Glossaries, nil
+}
+
+// ListGlossary as per
+// https://www.deepl.com/docs-api/managing-glossaries/listing-glossary-information/
+func (c *Client) ListGlossary(ctx context.Context, glossaryID string) (*Glossary, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", c.glossaryURL+"/"+glossaryID, nil)
+	if err != nil {
+		return nil, fmt.Errorf("build request: %w", err)
+	}
+	req.Header.Add("Authorization", "DeepL-Auth-Key "+c.authKey)
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("do request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, errorFromResp(resp)
+	}
+
+	var response Glossary
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return nil, fmt.Errorf("decode deepl response: %w", err)
+	}
+
+	return &response, nil
+}
+
+// ListGlossaryEntries as per
+// https://www.deepl.com/docs-api/managing-glossaries/listing-entries-of-a-glossary/
+func (c *Client) ListGlossaryEntries(ctx context.Context, glossaryID string) ([]GlossaryEntry, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", c.glossaryURL+"/"+glossaryID+"/entries", nil)
+	if err != nil {
+		return nil, fmt.Errorf("build request: %w", err)
+	}
+	req.Header.Add("Authorization", "DeepL-Auth-Key "+c.authKey)
+	req.Header.Add("Accept", "text/tab-separated-values")
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("do request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, errorFromResp(resp)
+	}
+
+	var entries []GlossaryEntry
+	scanner := bufio.NewScanner(resp.Body)
+	for scanner.Scan() {
+		line := scanner.Text()
+		parts := strings.Split(line, "\t")
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("expected 2 tab-separated values, got %q", line)
+		}
+		entries = append(entries, GlossaryEntry{
+			Source: parts[0],
+			Target: parts[1],
+		})
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return entries, nil
+}
+
+// DeleteGlossary as per
+// https://www.deepl.com/docs-api/managing-glossaries/deleing-a-glossary/
+func (c *Client) DeleteGlossary(ctx context.Context, glossaryID string) error {
+	req, err := http.NewRequestWithContext(ctx, "DELETE", c.glossaryURL+"/"+glossaryID, nil)
+	if err != nil {
+		return fmt.Errorf("build request: %w", err)
+	}
+	req.Header.Add("Authorization", "DeepL-Auth-Key "+c.authKey)
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return fmt.Errorf("do request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusNoContent {
+		return errorFromResp(resp)
+	}
+	return nil
+}
+
 func (err Error) Error() string {
 	switch err.Code {
 	case 456:
 		return "Quota exceeded. The character limit has been reached."
 	default:
-		return http.StatusText(err.Code)
+		if len(err.Body) > 0 {
+			return fmt.Sprintf("unexpected HTTP status %s (%s)",
+				http.StatusText(err.Code),
+				strings.TrimSpace(string(err.Body)))
+		} else {
+			return fmt.Sprintf("unexpected HTTP status %s",
+				http.StatusText(err.Code))
+		}
 	}
 }
 
