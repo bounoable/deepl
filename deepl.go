@@ -191,7 +191,6 @@ func (c *Client) Translate(ctx context.Context, text string, targetLang Language
 //	}
 func (c *Client) TranslateMany(ctx context.Context, texts []string, targetLang Language, opts ...TranslateOption) ([]Translation, error) {
 	vals := make(url.Values)
-	vals.Set("auth_key", c.authKey)
 	vals.Set("target_lang", string(targetLang))
 
 	for _, text := range texts {
@@ -206,6 +205,8 @@ func (c *Client) TranslateMany(ctx context.Context, texts []string, targetLang L
 	if err != nil {
 		return nil, fmt.Errorf("build request: %w", err)
 	}
+
+	req.Header.Add("Authorization", "DeepL-Auth-Key "+c.authKey)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := c.client.Do(req)
