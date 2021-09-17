@@ -36,7 +36,7 @@ type TranslateOption func(url.Values)
 
 // Error is a DeepL error.
 type Error struct {
-	// The HTTP error code, returned by the deepl API.
+	// The HTTP error code, returned by the DeepL API.
 	Code int
 
 	Body []byte
@@ -228,7 +228,10 @@ func (c *Client) TranslateMany(ctx context.Context, texts []string, targetLang L
 }
 
 func errorFromResp(r *http.Response) error {
-	b, _ := ioutil.ReadAll(r.Body)
+	b, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return fmt.Errorf("read response body: %w", err)
+	}
 	return Error{
 		Code: r.StatusCode,
 		Body: b,
@@ -400,10 +403,9 @@ func (err Error) Error() string {
 			return fmt.Sprintf("unexpected HTTP status %s (%s)",
 				http.StatusText(err.Code),
 				strings.TrimSpace(string(err.Body)))
-		} else {
-			return fmt.Sprintf("unexpected HTTP status %s",
-				http.StatusText(err.Code))
 		}
+		return fmt.Sprintf("unexpected HTTP status %s",
+			http.StatusText(err.Code))
 	}
 }
 
