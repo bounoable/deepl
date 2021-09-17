@@ -234,7 +234,7 @@ var _ = Describe("Client.TranslateMany", func() {
 func itAddsTheRequiredFields(request *chan *http.Request, targetLang *deepl.Language) {
 	It("adds the auth key", func(done Done) {
 		req := <-*request
-		Ω(req.FormValue("auth_key")).Should(Equal("an-auth-key"))
+		Ω(req.Header.Get("Authorization")).Should(Equal("DeepL-Auth-Key an-auth-key"))
 		close(done)
 	})
 
