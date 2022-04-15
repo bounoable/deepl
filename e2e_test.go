@@ -50,6 +50,25 @@ func TestTranslate_withSourceLang(t *testing.T) {
 	// for an invalid source language is not defined
 }
 
+func TestHTMLTagHandling(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping integration test.")
+		return
+	}
+
+	client := deepl.New(getAuthKey(t))
+
+	res, _, err := client.Translate(
+		context.Background(),
+		`<p alt="This is a test.">This is a test.</p>`,
+		deepl.German,
+		deepl.TagHandling(deepl.HTMLTagHandling),
+	)
+
+	assert.Nil(t, err)
+	assert.Equal(t, `<p alt="This is a test.">Dies ist ein Test.</p>`, res)
+}
+
 func getAuthKey(t *testing.T) string {
 	authKey := os.Getenv("DEEPL_AUTH_KEY")
 	if authKey == "" {
