@@ -4,7 +4,7 @@ package deepl
 const (
 	Bulgarian          = Language("BG")
 	Chinese            = Language("ZH")
-	Czech              = Language("CZ")
+	Czech              = Language("CS")
 	Danish             = Language("DA")
 	Dutch              = Language("NL")
 	EnglishAmerican    = Language("EN-US")
