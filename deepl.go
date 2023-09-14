@@ -46,6 +46,8 @@ type Error struct {
 func BaseURL(url string) ClientOption {
 	return func(c *Client) {
 		c.baseURL = url
+		c.translateURL = fmt.Sprintf("%s/translate", c.baseURL)
+		c.glossaryURL = fmt.Sprintf("%s/glossaries", c.baseURL)
 	}
 }
 
@@ -117,16 +119,15 @@ func GlossaryID(glossaryID string) TranslateOption {
 func New(authKey string, opts ...ClientOption) *Client {
 	c := Client{
 		authKey: authKey,
-		baseURL: V2,
 		client:  http.DefaultClient,
 	}
 
+	// default base url
+	BaseURL(V2)(&c)
+	
 	for _, opt := range opts {
 		opt(&c)
 	}
-
-	c.translateURL = fmt.Sprintf("%s/translate", c.baseURL)
-	c.glossaryURL = fmt.Sprintf("%s/glossaries", c.baseURL)
 
 	return &c
 }
