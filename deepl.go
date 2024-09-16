@@ -115,6 +115,14 @@ func GlossaryID(glossaryID string) TranslateOption {
 	}
 }
 
+// Context returns a TranslateOption that sets the `context` DeepL
+// option.
+func Context(context string) TranslateOption {
+	return func(vals url.Values) {
+		vals.Set("context", context)
+	}
+}
+
 // New returns a Client that uses authKey as the DeepL authentication key.
 func New(authKey string, opts ...ClientOption) *Client {
 	c := Client{
@@ -124,7 +132,7 @@ func New(authKey string, opts ...ClientOption) *Client {
 
 	// default base url
 	BaseURL(V2)(&c)
-	
+
 	for _, opt := range opts {
 		opt(&c)
 	}
