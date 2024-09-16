@@ -2,11 +2,11 @@ package deepl
 
 const (
 	// SplitNone means no splitting at all, whole input is treated as one sentence.
-	SplitNone = SplitSentence("0")
+	SplitNone SplitSentence = "0"
 	// SplitDefault splits on interpunction and on newlines (default).
-	SplitDefault = SplitSentence("1")
+	SplitDefault SplitSentence = "1"
 	// SplitNoNewlines  splits on interpunction only, ignoring newlines.
-	SplitNoNewlines = SplitSentence("nonewlines")
+	SplitNoNewlines SplitSentence = "nonewlines"
 )
 
 // SplitSentence is a split_sentences option.
