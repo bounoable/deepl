@@ -2,11 +2,11 @@ package deepl
 
 const (
 	// DefaultFormal is the default formality.
-	DefaultFormal = Formal("default")
+	DefaultFormal Formal = "default"
 	// LessFormal means the text is written in a less formal / more informal language.
-	LessFormal = Formal("less")
+	LessFormal Formal = "less"
 	// MoreFormal means the text is written in a more formal language.
-	MoreFormal = Formal("more")
+	MoreFormal Formal = "more"
 )
 
 // Formal is a formality option.
