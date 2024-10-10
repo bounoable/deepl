@@ -17,6 +17,7 @@ const (
 	German             Language = "DE"
 	Greek              Language = "EL"
 	Hungarian          Language = "HU"
+	Indonesian         Language = "ID"
 	Italian            Language = "IT"
 	Japanese           Language = "JA"
 	Korean             Language = "KO"
