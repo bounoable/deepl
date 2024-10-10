@@ -39,17 +39,17 @@ const (
 const (
 	// English (unspecified).
 	//
-	// Deprecated: use EnglishAmerican or EnglishBritish instead.
+	// Don't use this as a target language. Use EnglishAmerican or EnglishBritish instead.
 	English Language = "EN"
 
 	// Portuguese (unspecified).
 	//
-	// Deprecated: use PortugueseBrazil or PortuguesePortugal instead.
+	// Don't use this as a target language. Use PortugueseBrazil or PortuguesePortugal instead.
 	Portuguese Language = "PT"
 
 	// Chinese (unspecified).
 	//
-	// Deprecated: use ChineseSimplified or ChineseTraditional instead.
+	// Don't use this as a target language. Use ChineseSimplified or ChineseTraditional instead.
 	Chinese Language = "ZH"
 )
 
