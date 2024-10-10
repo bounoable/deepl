@@ -2,8 +2,10 @@ package deepl
 
 // Supported languages
 const (
+	Arabic             Language = "AR"
 	Bulgarian          Language = "BG"
-	Chinese            Language = "ZH"
+	ChineseSimplified  Language = "ZH-HANS"
+	ChineseTraditional Language = "ZH-HANT"
 	Czech              Language = "CS"
 	Danish             Language = "DA"
 	Dutch              Language = "NL"
@@ -17,8 +19,10 @@ const (
 	Hungarian          Language = "HU"
 	Italian            Language = "IT"
 	Japanese           Language = "JA"
+	Korean             Language = "KO"
 	Latvian            Language = "LV"
 	Lithuanian         Language = "LT"
+	NorwegianBokmal    Language = "NB"
 	Polish             Language = "PL"
 	PortugueseBrazil   Language = "PT-BR"
 	PortuguesePortugal Language = "PT-PT"
@@ -28,6 +32,8 @@ const (
 	Slovenian          Language = "SL"
 	Spanish            Language = "ES"
 	Swedish            Language = "SV"
+	Turkish            Language = "TR"
+	Ukrainian          Language = "UK"
 )
 
 const (
@@ -40,6 +46,11 @@ const (
 	//
 	// Deprecated: use PortugueseBrazil or PortuguesePortugal instead.
 	Portuguese Language = "PT"
+
+	// Chinese (unspecified).
+	//
+	// Deprecated: use ChineseSimplified or ChineseTraditional instead.
+	Chinese Language = "ZH"
 )
 
 // Language is a deepl language code.
