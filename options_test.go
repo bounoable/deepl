@@ -16,6 +16,17 @@ func TestSourceLang(t *testing.T) {
 	assert.Equal(t, string(deepl.German), vals.Get("source_lang"))
 }
 
+func TestShowBilledChars(t *testing.T) {
+	vals := make(url.Values)
+	assert.Equal(t, "", vals.Get("show_billed_characters"))
+	deepl.ShowBilledChars(true)(vals)
+	assert.Equal(t, "1", vals.Get("show_billed_characters"))
+	deepl.ShowBilledChars(false)(vals)
+	assert.Equal(t, "0", vals.Get("show_billed_characters"))
+	deepl.ShowBilledChars(true)(vals)
+	assert.Equal(t, "1", vals.Get("show_billed_characters"))
+}
+
 func TestSplitSentences(t *testing.T) {
 	splits := []deepl.SplitSentence{
 		deepl.SplitNone,

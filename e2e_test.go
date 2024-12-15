@@ -7,6 +7,7 @@ import (
 
 	"github.com/bounoable/deepl"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTranslate_withoutSourceLang(t *testing.T) {
@@ -15,7 +16,7 @@ func TestTranslate_withoutSourceLang(t *testing.T) {
 		return
 	}
 
-	client := deepl.New(getAuthKey(t))
+	client := deepl.New(getAuthKey(t),getOpts(t)...)
 
 	translated, sourceLang, err := client.Translate(
 		context.Background(),
@@ -28,13 +29,36 @@ func TestTranslate_withoutSourceLang(t *testing.T) {
 	assert.Equal(t, deepl.English, sourceLang)
 }
 
+func TestTranslate_showBilledCharacters(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping integration test.")
+		return
+	}
+
+	client := deepl.New(getAuthKey(t),getOpts(t)...)
+
+	translations, err := client.TranslateMany(
+		context.Background(),
+		[]string{"This is an example text."},
+		deepl.German,
+		deepl.ShowBilledChars(true),
+	)
+
+	require.Nil(t, err)
+	require.Len(t, translations, 1)
+	assert.Equal(t, "Dies ist ein Beispieltext.", translations[0].Text)
+	assert.Equal(t, deepl.English, deepl.Language(translations[0].DetectedSourceLanguage))
+	assert.NotNil(t, translations[0].BilledCharacters)
+	assert.True(t, *translations[0].BilledCharacters > 0)
+}
+
 func TestTranslate_withSourceLang(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration test.")
 		return
 	}
 
-	client := deepl.New(getAuthKey(t))
+	client := deepl.New(getAuthKey(t),getOpts(t)...)
 
 	_, sourceLang, err := client.Translate(
 		context.Background(),
@@ -43,7 +67,7 @@ func TestTranslate_withSourceLang(t *testing.T) {
 		deepl.SourceLang(deepl.English),
 	)
 
-	assert.Nil(t, err)
+	require.Nil(t, err)
 	assert.Equal(t, deepl.English, sourceLang)
 
 	// we don't validate the translated text, because the translation behaviour
@@ -56,7 +80,7 @@ func TestHTMLTagHandling(t *testing.T) {
 		return
 	}
 
-	client := deepl.New(getAuthKey(t))
+	client := deepl.New(getAuthKey(t),getOpts(t)...)
 
 	res, _, err := client.Translate(
 		context.Background(),
@@ -65,8 +89,17 @@ func TestHTMLTagHandling(t *testing.T) {
 		deepl.TagHandling(deepl.HTMLTagHandling),
 	)
 
-	assert.Nil(t, err)
+	require.Nil(t, err)
 	assert.Equal(t, `<p alt="This is a test.">Dies ist ein Test.</p>`, res)
+}
+
+func getOpts(t *testing.T, opts ...deepl.ClientOption) []deepl.ClientOption {
+	apiEndpoint := os.Getenv("DEEPL_API_ENDPOINT")
+	ret := opts
+	if apiEndpoint != "" {
+		ret = append(ret, deepl.BaseURL(apiEndpoint))
+	}
+	return ret
 }
 
 func getAuthKey(t *testing.T) string {

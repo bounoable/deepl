@@ -68,6 +68,14 @@ func SourceLang(lang Language) TranslateOption {
 	}
 }
 
+// ShowBilledChars returns a TranslateOption that asks DeepL to return the
+// number of billed characters.
+func ShowBilledChars(show bool) TranslateOption {
+	return func(vals url.Values) {
+		vals.Set("show_billed_characters", boolString(show))
+	}
+}
+
 // SplitSentences returns a TranslateOption that sets the `split_sentences`
 // DeepL option.
 func SplitSentences(split SplitSentence) TranslateOption {

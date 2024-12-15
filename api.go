@@ -10,6 +10,8 @@ type translateResponse struct {
 type Translation struct {
 	DetectedSourceLanguage string `json:"detected_source_language"`
 	Text                   string `json:"text"`
+	// BilledCharacters has the value only if ShowBilledChars(true) option was set.
+	BilledCharacters       *int   `json:"billed_characters"`
 }
 
 // Glossary as per
