@@ -16,7 +16,7 @@ func TestTranslate_withoutSourceLang(t *testing.T) {
 		return
 	}
 
-	client := deepl.New(getAuthKey(t),getOpts(t)...)
+	client := deepl.New(getAuthKey(t), getOpts()...)
 
 	translated, sourceLang, err := client.Translate(
 		context.Background(),
@@ -35,7 +35,7 @@ func TestTranslate_showBilledCharacters(t *testing.T) {
 		return
 	}
 
-	client := deepl.New(getAuthKey(t),getOpts(t)...)
+	client := deepl.New(getAuthKey(t), getOpts()...)
 
 	translations, err := client.TranslateMany(
 		context.Background(),
@@ -49,7 +49,7 @@ func TestTranslate_showBilledCharacters(t *testing.T) {
 	assert.Equal(t, "Dies ist ein Beispieltext.", translations[0].Text)
 	assert.Equal(t, deepl.English, deepl.Language(translations[0].DetectedSourceLanguage))
 	assert.NotNil(t, translations[0].BilledCharacters)
-	assert.True(t, *translations[0].BilledCharacters > 0)
+	assert.True(t, translations[0].BilledCharacters > 0)
 }
 
 func TestTranslate_withSourceLang(t *testing.T) {
@@ -58,7 +58,7 @@ func TestTranslate_withSourceLang(t *testing.T) {
 		return
 	}
 
-	client := deepl.New(getAuthKey(t),getOpts(t)...)
+	client := deepl.New(getAuthKey(t), getOpts()...)
 
 	_, sourceLang, err := client.Translate(
 		context.Background(),
@@ -80,7 +80,7 @@ func TestHTMLTagHandling(t *testing.T) {
 		return
 	}
 
-	client := deepl.New(getAuthKey(t),getOpts(t)...)
+	client := deepl.New(getAuthKey(t), getOpts()...)
 
 	res, _, err := client.Translate(
 		context.Background(),
@@ -93,7 +93,7 @@ func TestHTMLTagHandling(t *testing.T) {
 	assert.Equal(t, `<p alt="This is a test.">Dies ist ein Test.</p>`, res)
 }
 
-func getOpts(t *testing.T, opts ...deepl.ClientOption) []deepl.ClientOption {
+func getOpts(opts ...deepl.ClientOption) []deepl.ClientOption {
 	apiEndpoint := os.Getenv("DEEPL_API_ENDPOINT")
 	ret := opts
 	if apiEndpoint != "" {
