@@ -26,6 +26,8 @@ func (split SplitSentence) Value() string {
 	}
 }
 
+// String provides a textual representation of the [SplitSentence], converting
+// it to its corresponding request value.
 func (split SplitSentence) String() string {
 	return split.Value()
 }

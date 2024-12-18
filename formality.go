@@ -17,6 +17,7 @@ func (f Formal) Value() string {
 	return string(f)
 }
 
+// String returns the formality level as a [string].
 func (f Formal) String() string {
 	return f.Value()
 }

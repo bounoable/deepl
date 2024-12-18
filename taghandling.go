@@ -27,6 +27,7 @@ func (f TagHandlingStrategy) Value() string {
 	return string(f)
 }
 
+// String converts the [TagHandlingStrategy] to its string representation.
 func (f TagHandlingStrategy) String() string {
 	return string(f)
 }

@@ -4,4 +4,7 @@ test:
 e2e-test:
 	./scripts/e2e-test $(authKey)
 
-.PHONY: test e2e-test
+docs:
+	@./scripts/docs
+
+.PHONY: test e2e-test docs

@@ -177,16 +177,39 @@ func (c *Client) AuthKey() string {
 //		log.Println(fmt.Sprintf("DeepL error code %d: %s", deeplError.Code, deeplError))
 //	}
 func (c *Client) Translate(ctx context.Context, text string, targetLang Language, opts ...TranslateOption) (string, Language, error) {
+	translation, err := c.Translation(ctx, text, targetLang, opts...)
+	if err != nil {
+		return "", "", fmt.Errorf("translation: %w", err)
+	}
+
+	return translation.Text, Language(translation.DetectedSourceLanguage), nil
+}
+
+// Translation retrieves the translated text and detected source language for a
+// given input text, translating it into the specified target language using
+// optional translation parameters, and returns a [Translation] or an error if
+// the translation fails.
+//
+// When DeepL responds with an error, Translation returns an Error that contains
+// the DeepL error code and message. Use errors.As to unwrap the returned error
+// into an Error:
+//
+//	translation, err := c.Translation(context.TODO(), "Hello.", deepl.Japanese)
+//	var deeplError deepl.Error
+//	if errors.As(err, &deeplError) {
+//		log.Println(fmt.Sprintf("DeepL error code %d: %s", deeplError.Code, deeplError))
+//	}
+func (c *Client) Translation(ctx context.Context, text string, targetLang Language, opts ...TranslateOption) (Translation, error) {
 	translations, err := c.TranslateMany(ctx, []string{text}, targetLang, opts...)
 	if err != nil {
-		return "", "", fmt.Errorf("translate many: %w", err)
+		return Translation{}, fmt.Errorf("translate many: %w", err)
 	}
 
 	if len(translations) == 0 {
-		return "", "", errors.New("deepl responded with no translations")
+		return Translation{}, errors.New("deepl responded with no translations")
 	}
 
-	return translations[0].Text, Language(translations[0].DetectedSourceLanguage), nil
+	return translations[0], nil
 }
 
 // TranslateMany translates the provided texts into the specified Language and
@@ -411,6 +434,8 @@ func (c *Client) DeleteGlossary(ctx context.Context, glossaryID string) error {
 	return nil
 }
 
+// Error returns a string representation of the DeepL error, providing details
+// based on the HTTP error code and response body.
 func (err Error) Error() string {
 	switch err.Code {
 	case 456:
